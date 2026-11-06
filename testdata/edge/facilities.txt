@@ -1,0 +1,10 @@
+# FacilityID|FacilityName|BuildingName|Category
+f004|Computer Lab A|science building|Computer Lab
+F005 | Room 101 | Gym | Classroom
+F005|Dup Record|Gym|Recreation
+F006|Bad ID|Unknown Hall|Classroom
+F007|Only Three|Gym
+F008|Too|Many|Gym|Classroom|Extra
+F009||Gym|Classroom
+F01|Bad Format|Gym|Classroom
+F010|Room #5|Gym|Recreation
