@@ -1,341 +1,324 @@
-SMART CAMPUS NAVIGATION AND FACILITY ANALYTICS SYSTEM
+Smart Campus Navigation and Facility Analytics System
 Test Results
 
-Course:      CSCE 2110 - Project 2
-Prepared by: Bobby Oliver (per source file headers)
-Test date:   November 8, 2026
+Course: CSCE 2110, Project 2
+Prepared by: Bobby Oliver
+Date: November 8, 2026
 
-Environment: Windows, Git Bash, g++ 14.2.0 (MSYS2), C++11
-Build:       g++ -std=c++11 -Wall -Wextra -o campus.exe Utils.cpp HashTable.cpp FacilityDatabase.cpp main.cpp
+I ran every test below myself on Windows, using g++ 14.2.0 through Git Bash
+and compiling to C++11. The build command was
 
-Method: every case below was executed against the real sample data in the
-project directory. The actual output column is copied from the terminal.
-The repeating menu banner is removed from the output shown here so the
-input and result stay readable; it is printed before every prompt in a real
-session. Temporary data sets used by T-22, T-23, T-24 and T-25 were created
-outside the deliverable set, used, and then deleted. The hash collision
-data set used by T-26 is kept in testdata/collision so the run can be
-repeated.
+    g++ -std=c++11 -Wall -Wextra -o campus.exe Utils.cpp HashTable.cpp
+    FacilityDatabase.cpp main.cpp
 
-SUMMARY: 26 executed, 26 passed, 0 failed.
-Options 5 to 11 could not be tested because the graph and tree modules are
-not implemented; they are excluded from the pass/fail count.
+The "actual result" text is copied from the terminal rather than retyped. The
+menu repeats itself before every prompt, so I left the banner out of the
+transcripts to keep them readable; the program still prints it in a real
+session.
+
+Twenty-six tests ran and all twenty-six passed. Options 5 through 11 are
+placeholders for the graph and tree work, so they are outside this count.
 
 
-================================================================
-T-01  BUILD
-================================================================
-Command : g++ -std=c++11 -Wall -Wextra -o campus.exe *.cpp
-Expected: compiles with no errors and no warnings
-Actual  : exit=0, warnings_bytes=0
-Result  : PASS
+Test 1. Clean build.
+
+I compiled the four source files with warnings turned on.
+Expected: no errors and no warnings.
+Actual: exit status 0 and nothing printed.
+Result: pass.
 
 
-================================================================
-T-02  LOAD SAMPLE DATA FROM DEFAULT DIRECTORY
-================================================================
-Command : ./campus.exe            (input: 0)
-Expected: buildings 7 accepted 0 rejected; facilities 10 accepted 0 rejected
-          with hash capacity 11, entries 10, collisions 1
-Actual  : buildings.txt: 7 accepted, 0 rejected
-          facilities.txt: 10 accepted, 0 rejected (hash capacity 11, entries 10, collisions 1)
-Result  : PASS
+Test 2. Loading the sample data.
+
+Started the program with no argument, which reads from the current directory,
+then chose 0 to exit.
+Expected: seven buildings accepted and ten facilities accepted, with a hash
+capacity of 11, ten entries and one collision.
+Actual:
+    buildings.txt: 7 accepted, 0 rejected
+    facilities.txt: 10 accepted, 0 rejected (hash capacity 11, entries 10, collisions 1)
+Result: pass.
 
 
-================================================================
-T-03  VIEW ALL FACILITIES (menu 1)
-================================================================
-Input   : 1
-Expected: ten records in file order, F001 to F010, then the total
-Actual  : F001 | Main Reading Room | Library | Library
-          F002 | Tutoring Center | Library | Tutoring Center
-          F003 | Student Services Office | Student Union | Student Services Office
-          F004 | Computer Lab A | Science Building | Computer Lab
-          F005 | Room 101 | Engineering Building | Classroom
-          F006 | Computer Lab B | Engineering Building | Computer Lab
-          F007 | Room 101 | Business Building | Classroom
-          F008 | Fitness Center | Gym | Recreation
-          F009 | Room 205 | Science Building | Classroom
-          F010 | Research Help Desk | Library | Library
-          Total facilities: 10
-Result  : PASS
+Test 3. Listing every facility.
+
+Input: menu option 1.
+Expected: all ten records in file order, F001 to F010, then the total.
+Actual:
+    F001 | Main Reading Room | Library | Library
+    F002 | Tutoring Center | Library | Tutoring Center
+    F003 | Student Services Office | Student Union | Student Services Office
+    F004 | Computer Lab A | Science Building | Computer Lab
+    F005 | Room 101 | Engineering Building | Classroom
+    F006 | Computer Lab B | Engineering Building | Computer Lab
+    F007 | Room 101 | Business Building | Classroom
+    F008 | Fitness Center | Gym | Recreation
+    F009 | Room 205 | Science Building | Classroom
+    F010 | Research Help Desk | Library | Library
+    Total facilities: 10
+Result: pass.
 
 
-================================================================
-T-04  SEARCH BY ID, EXACT (menu 2)
-================================================================
-Input   : 2, F004
-Expected: the F004 record is found
-Actual  : Found: Computer Lab A | Science Building | Computer Lab
-Result  : PASS
+Test 4. Looking up an ID exactly.
+
+Input: option 2, then F004.
+Expected: the F004 record is found.
+Actual: Found: Computer Lab A | Science Building | Computer Lab
+Result: pass.
 
 
-================================================================
-T-05  SEARCH BY ID, LOWERCASE
-================================================================
-Input   : 2, f004
-Expected: same record, because the ID is uppercased before hashing
-Actual  : Found: Computer Lab A | Science Building | Computer Lab
-Result  : PASS
+Test 5. Looking up a lowercase ID.
+
+Input: option 2, then f004.
+Expected: the same record, because the ID is uppercased before it is hashed.
+Actual: Found: Computer Lab A | Science Building | Computer Lab
+Result: pass.
 
 
-================================================================
-T-06  SEARCH BY ID, SURROUNDING SPACES
-================================================================
-Input   : 2, "  f004  "
-Expected: trimmed, uppercased, same record
-Actual  : Found: Computer Lab A | Science Building | Computer Lab
-Result  : PASS
+Test 6. Looking up an ID with spaces around it.
+
+Input: option 2, then two spaces, f004, two more spaces.
+Expected: the whitespace is trimmed, the ID is uppercased, and the same
+record comes back.
+Actual: Found: Computer Lab A | Science Building | Computer Lab
+Result: pass.
 
 
-================================================================
-T-07  SEARCH BY ID, INVALID FORMAT
-================================================================
-Input   : 2, 004
-Expected: invalid format message, no lookup
-Actual  : Invalid format: an ID is F followed by exactly three digits.
-Result  : PASS
+Test 7. Looking up an ID in the wrong format.
+
+Input: option 2, then 004.
+Expected: the format error, with no lookup attempted.
+Actual: Invalid format: an ID is F followed by exactly three digits.
+Result: pass.
 
 
-================================================================
-T-08  SEARCH BY ID, NOT PRESENT
-================================================================
-Input   : 2, F999
-Expected: not found message naming the normalized ID
-Actual  : Not found: no facility with ID F999
-Result  : PASS
+Test 8. Looking up an ID that is not there.
+
+Input: option 2, then F999.
+Expected: a not-found message naming the normalized ID.
+Actual: Not found: no facility with ID F999
+Result: pass.
 
 
-================================================================
-T-09  SEARCH BY NAME, DUPLICATE NAME (menu 3)
-================================================================
-Input   : 3, Room 101
-Expected: both records printed, correct count
-Actual  : F005 | Room 101 | Engineering Building | Classroom
-          F007 | Room 101 | Business Building | Classroom
-          2 facilities found with name: Room 101
-Result  : PASS
+Test 9. Searching a name that several facilities share.
+
+Input: option 3, then Room 101.
+Expected: both records printed in file order, with a count of two.
+Actual:
+    F005 | Room 101 | Engineering Building | Classroom
+    F007 | Room 101 | Business Building | Classroom
+    2 facilities found with name: Room 101
+Result: pass.
 
 
-================================================================
-T-10  SEARCH BY NAME, CASE INSENSITIVE
-================================================================
-Input   : 3, room 101
-Expected: same two records as T-09
-Actual  : F005 | Room 101 | Engineering Building | Classroom
-          F007 | Room 101 | Business Building | Classroom
-          2 facilities found with name: room 101
-Result  : PASS
+Test 10. Searching a name in a different capitalization.
+
+Input: option 3, then room 101.
+Expected: the same two records as Test 9.
+Actual:
+    F005 | Room 101 | Engineering Building | Classroom
+    F007 | Room 101 | Business Building | Classroom
+    2 facilities found with name: room 101
+Result: pass.
 
 
-================================================================
-T-11  SEARCH BY NAME, SINGLE MATCH
-================================================================
-Input   : 3, Computer Lab A
-Expected: one record and singular wording
-Actual  : F004 | Computer Lab A | Science Building | Computer Lab
-          1 facility found with name: Computer Lab A
-Result  : PASS
+Test 11. Searching a name that matches once.
+
+Input: option 3, then Computer Lab A.
+Expected: one record and the singular wording.
+Actual:
+    F004 | Computer Lab A | Science Building | Computer Lab
+    1 facility found with name: Computer Lab A
+Result: pass.
 
 
-================================================================
-T-12  SEARCH BY NAME, BLANK INPUT
-================================================================
-Input   : 3, (empty line)
-Expected: invalid input message, no search performed
-Actual  : Invalid input: please enter a facility name.
-Result  : PASS
+Test 12. Searching a blank name.
+
+Input: option 3, then an empty line.
+Expected: an invalid input message and no search.
+Actual: Invalid input: please enter a facility name.
+Result: pass.
 
 
-================================================================
-T-13  SEARCH BY NAME, NO MATCH
-================================================================
-Input   : 3, Nope
-Expected: no facilities found message
-Actual  : No facilities found with name: Nope
-Result  : PASS
+Test 13. Searching a name that does not exist.
+
+Input: option 3, then Nope.
+Expected: a message saying nothing matched.
+Actual: No facilities found with name: Nope
+Result: pass.
 
 
-================================================================
-T-14  SEARCH BY CATEGORY (menu 4)
-================================================================
-Input   : 4, classroom
-Expected: all three Classroom records in file order
-Actual  : F005 | Room 101 | Engineering Building | Classroom
-          F007 | Room 101 | Business Building | Classroom
-          F009 | Room 205 | Science Building | Classroom
-          3 facilities found in category: classroom
-Result  : PASS
+Test 14. Searching by category.
+
+Input: option 4, then classroom.
+Expected: all three Classroom records in file order.
+Actual:
+    F005 | Room 101 | Engineering Building | Classroom
+    F007 | Room 101 | Business Building | Classroom
+    F009 | Room 205 | Science Building | Classroom
+    3 facilities found in category: classroom
+Result: pass.
 
 
-================================================================
-T-15  SEARCH BY CATEGORY, PADDED AND LOWERCASE
-================================================================
-Input   : 4, "  library  "
-Expected: trimmed, case insensitive, both Library records
-Actual  : F001 | Main Reading Room | Library | Library
-          F010 | Research Help Desk | Library | Library
-          2 facilities found in category: library
-Result  : PASS
+Test 15. Searching a category with padding and lowercase letters.
+
+Input: option 4, then two spaces, library, two more spaces.
+Expected: the padding is trimmed, case is ignored, and both Library records
+are printed.
+Actual:
+    F001 | Main Reading Room | Library | Library
+    F010 | Research Help Desk | Library | Library
+    2 facilities found in category: library
+Result: pass.
 
 
-================================================================
-T-16  SEARCH BY CATEGORY, NO MATCH
-================================================================
-Input   : 4, Nope
-Expected: no facilities found message
-Actual  : No facilities found in category: Nope
-Result  : PASS
+Test 16. Searching a category that does not exist.
+
+Input: option 4, then Nope.
+Expected: a message saying nothing matched.
+Actual: No facilities found in category: Nope
+Result: pass.
 
 
-================================================================
-T-17  SEARCH BY CATEGORY, BLANK INPUT
-================================================================
-Input   : 4, (empty line)
-Expected: invalid input message
-Actual  : Invalid input: please enter a facility category.
-Result  : PASS
+Test 17. Searching a blank category.
+
+Input: option 4, then an empty line.
+Expected: an invalid input message.
+Actual: Invalid input: please enter a facility category.
+Result: pass.
 
 
-================================================================
-T-18  MENU, NON-NUMERIC ENTRY
-================================================================
-Input   : abc
-Expected: error message, menu re-prompts, program keeps running
-Actual  : Invalid choice. Please enter a number from the menu.
-Result  : PASS
+Test 18. Typing text at the menu.
+
+Input: abc.
+Expected: an error, the menu again, and the program still running.
+Actual: Invalid choice. Please enter a number from the menu.
+Result: pass.
 
 
-================================================================
-T-19  MENU, OUT OF RANGE ENTRY
-================================================================
-Input   : 12
-Expected: error message, menu re-prompts
-Actual  : Invalid choice. Please enter a number from the menu.
-Result  : PASS
+Test 19. Typing a number that is out of range.
+
+Input: 12.
+Expected: an error and the menu again.
+Actual: Invalid choice. Please enter a number from the menu.
+Result: pass.
 
 
-================================================================
-T-20  RESERVED OPTION
-================================================================
-Input   : 5
-Expected: placeholder message, no crash
-Actual  : That option is not built yet.
-Result  : PASS
+Test 20. Choosing one of the reserved options.
+
+Input: 5.
+Expected: the placeholder message and no crash.
+Actual: That option is not built yet.
+Result: pass.
 
 
-================================================================
-T-21  END OF INPUT WITHOUT EXIT CHOICE
-================================================================
-Input   : 1, then the stream ends
-Expected: program finishes the option and exits instead of looping forever
-Actual  : Total facilities: 10
-          Goodbye.
-Result  : PASS
+Test 21. Reaching the end of input without choosing Exit.
+
+Input: option 1, then the input stream ends.
+Expected: the option finishes and the program exits instead of looping.
+Actual:
+    Total facilities: 10
+    Goodbye.
+Result: pass.
 
 
-================================================================
-T-22  EMPTY DATA FILES
-================================================================
-Setup   : temporary directory with four zero-byte files
-Input   : 1, 2, F001, 0
-Expected: 0 accepted 0 rejected for both files, empty state messages, no crash
-Actual  : buildings.txt: 0 accepted, 0 rejected
-          facilities.txt: 0 accepted, 0 rejected (hash capacity 11, entries 0, collisions 0)
-          No facilities are loaded.
-          Not found: no facility with ID F001
-Result  : PASS
+Test 22. Loading empty files.
+
+I made a temporary directory holding four empty files and pointed the program
+at it.
+Input: 1, 2, F001, 0.
+Expected: nothing accepted and nothing rejected in either file, empty-state
+messages, and no crash.
+Actual:
+    buildings.txt: 0 accepted, 0 rejected
+    facilities.txt: 0 accepted, 0 rejected (hash capacity 11, entries 0, collisions 0)
+    No facilities are loaded.
+    Not found: no facility with ID F001
+Result: pass.
 
 
-================================================================
-T-23  MISSING DATA DIRECTORY
-================================================================
-Setup   : nonexistent directory argument
-Expected: error naming each file, treated as empty, program continues
-Actual  : Error: could not open buildings.txt - treating it as empty.
-          buildings.txt: 0 accepted, 0 rejected
-          Error: could not open facilities.txt - treating it as empty.
-          facilities.txt: 0 accepted, 0 rejected (hash capacity 11, entries 0, collisions 0)
-          No facilities are loaded.
-Result  : PASS
+Test 23. Pointing the program at a directory that does not exist.
+
+Input: option 1 against a missing directory.
+Expected: an error naming each file, both files treated as empty, and the
+program carrying on.
+Actual:
+    Error: could not open buildings.txt - treating it as empty.
+    buildings.txt: 0 accepted, 0 rejected
+    Error: could not open facilities.txt - treating it as empty.
+    facilities.txt: 0 accepted, 0 rejected (hash capacity 11, entries 0, collisions 0)
+    No facilities are loaded.
+Result: pass.
 
 
-================================================================
-T-24  MALFORMED RECORDS AND CRLF LINE ENDINGS
-================================================================
-Setup   : temporary files saved with CRLF line endings:
-          buildings.txt  Library, duplicate "library", "  Science Building  ", Gym
-          facilities.txt lowercase f004, padded F005, duplicate F005,
-                         unknown building, 3 fields, 6 fields, empty field,
-                         invalid ID F01, name containing #, blank lines
-Input   : 1, 2, f004, 0
-Expected: each bad line rejected with file, line number and reason; good lines
-          accepted; IDs normalized; building spelling taken from buildings.txt
-Actual  : Warning: buildings.txt line 4: duplicate building 'library'
-          buildings.txt: 3 accepted, 1 rejected
-          Warning: facilities.txt line 4: duplicate facility ID F005 (keeping the first record)
-          Warning: facilities.txt line 5: unknown building 'Unknown Hall'
-          Warning: facilities.txt line 6: wrong number of fields (expected 4, found 3)
-          Warning: facilities.txt line 7: wrong number of fields (expected 4, found 6)
-          Warning: facilities.txt line 8: empty field
-          Warning: facilities.txt line 9: invalid facility ID 'F01' (must be F plus exactly three digits)
-          facilities.txt: 3 accepted, 6 rejected (hash capacity 11, entries 3, collisions 0)
-          F004 | Computer Lab A | Science Building | Computer Lab
-          F005 | Room 101 | Gym | Classroom
-          F010 | Room #5 | Gym | Recreation
-          Total facilities: 3
-          Found: Computer Lab A | Science Building | Computer Lab
-Result  : PASS
-Notes   : the rejected duplicate ID did not increase the collision count,
-          confirming that only accepted inserts can create a collision.
+Test 24. Bad records and Windows line endings.
+
+I built temporary files saved with carriage returns and line feeds, mixing
+good and bad records. The building file held Library, a duplicate "library",
+a padded "  Science Building  " and Gym. The facility file held a lowercase
+f004, a padded F005, a duplicate F005, a record naming an unknown building,
+records with three and six fields, a record with an empty field, the invalid
+ID F01, a name containing #, and blank lines.
+Input: 1, 2, f004, 0.
+Expected: every bad line rejected with the file, line number and reason, the
+good lines accepted, IDs normalized, and the building spelling taken from
+buildings.txt.
+Actual:
+    Warning: buildings.txt line 4: duplicate building 'library'
+    buildings.txt: 3 accepted, 1 rejected
+    Warning: facilities.txt line 4: duplicate facility ID F005 (keeping the first record)
+    Warning: facilities.txt line 5: unknown building 'Unknown Hall'
+    Warning: facilities.txt line 6: wrong number of fields (expected 4, found 3)
+    Warning: facilities.txt line 7: wrong number of fields (expected 4, found 6)
+    Warning: facilities.txt line 8: empty field
+    Warning: facilities.txt line 9: invalid facility ID 'F01' (must be F plus exactly three digits)
+    facilities.txt: 3 accepted, 6 rejected (hash capacity 11, entries 3, collisions 0)
+    F004 | Computer Lab A | Science Building | Computer Lab
+    F005 | Room 101 | Gym | Classroom
+    F010 | Room #5 | Gym | Recreation
+    Total facilities: 3
+    Found: Computer Lab A | Science Building | Computer Lab
+Result: pass. The rejected duplicate ID did not raise the collision count,
+which shows that only accepted insertions can create a collision.
 
 
-================================================================
-T-25  UTF-8 BYTE ORDER MARK
-================================================================
-Setup   : temporary files starting with EF BB BF
-Input   : 1, 0
-Expected: byte order mark ignored, records accepted
-Actual  : buildings.txt: 2 accepted, 0 rejected
-          facilities.txt: 1 accepted, 0 rejected (hash capacity 11, entries 1, collisions 0)
-          F001 | Reading Room | Library | Library
-          Total facilities: 1
-Result  : PASS
+Test 25. Files that start with a UTF-8 byte order mark.
+
+I saved temporary files beginning with the three mark bytes.
+Input: 1, 0.
+Expected: the mark is ignored and the records are accepted.
+Actual:
+    buildings.txt: 2 accepted, 0 rejected
+    facilities.txt: 1 accepted, 0 rejected (hash capacity 11, entries 1, collisions 0)
+    F001 | Reading Room | Library | Library
+    Total facilities: 1
+Result: pass.
 
 
-================================================================
-T-26  HASH COLLISION DEMO WITH OWN TEST DATA (HASH-7)
-================================================================
-Setup   : testdata/collision/buildings.txt holds Library, Science Building
-          and Gym. testdata/collision/facilities.txt holds F004, F106,
-          F009, F100, F010 and a lowercase duplicate f004.
-Command : ./campus.exe testdata/collision       (input: 1, 2, F100, 0)
-Expected: 5 accepted, 1 rejected, capacity 11, entries 5, collisions 2.
-          Under h = (h * 31 + c) % 11 the buckets are F004 to 6, F106 to 1,
-          F009 to 0, F100 to 6 and F010 to 0, so F100 collides with F004
-          and F010 collides with F009. The rejected duplicate adds nothing.
-Actual  : buildings.txt: 3 accepted, 0 rejected
-          Warning: facilities.txt line 12: duplicate facility ID F004 (keeping the first record)
-          facilities.txt: 5 accepted, 1 rejected (hash capacity 11, entries 5, collisions 2)
-          F004 | Computer Lab A | Science Building | Computer Lab
-          F106 | Collision Lab | Library | Computer Lab
-          F009 | Room 205 | Science Building | Classroom
-          F100 | Archived Room | Library | Classroom
-          F010 | Research Help Desk | Library | Library
-          Total facilities: 5
-          Found: Archived Room | Library | Classroom
-Result  : PASS
-Notes   : the duplicate attempt did not raise the count from 2, which is
-          the HASH-4 and HASH-7 requirement. The lookup of F100 succeeded
-          without scanning the facility list.
+Test 26. A collision from my own test data, and a duplicate insert.
+
+This is the case the collision requirement asks for. testdata/collision holds
+a building file with Library, Science Building and Gym, and a facility file
+with F004, F106, F009, F100, F010 and a lowercase duplicate f004. With a
+capacity of 11 and the hash h = (h * 31 + c) % 11, F004 and F100 both land in
+bucket 6 while F009 and F010 both land in bucket 0, so five accepted records
+produce two collisions.
+
+Input: ./campus.exe testdata/collision with 1, 2, F100, 0.
+Expected: five accepted, one rejected, capacity 11, five entries, two
+collisions, and the duplicate adding nothing.
+Actual:
+    buildings.txt: 3 accepted, 0 rejected
+    Warning: facilities.txt line 12: duplicate facility ID F004 (keeping the first record)
+    facilities.txt: 5 accepted, 1 rejected (hash capacity 11, entries 5, collisions 2)
+    F004 | Computer Lab A | Science Building | Computer Lab
+    F106 | Collision Lab | Library | Computer Lab
+    F009 | Room 205 | Science Building | Classroom
+    F100 | Archived Room | Library | Classroom
+    F010 | Research Help Desk | Library | Library
+    Total facilities: 5
+    Found: Archived Room | Library | Classroom
+Result: pass. The count stayed at two after the duplicate, and the lookup of
+F100 succeeded without scanning the facility list.
 
 
-================================================================
-NOT TESTED
-================================================================
-    - Options 5 to 11 (graph, degrees, BFS, department add/search/display,
-      preorder) are placeholders; the modules do not exist yet.
-    - connections.txt and departments.txt are not read by the program, so
-      their loading and validation cannot be verified.
-    - Load behaviour for a file whose last line has no trailing newline was
-      not exercised; getline handles it, but no case covers it explicitly.
