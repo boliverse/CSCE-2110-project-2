@@ -222,6 +222,11 @@ bool DepartmentTree::addDepartment(const string& name, const string& parentName)
     return true;
 }
 
+bool DepartmentTree::isEmpty() const 
+{
+    return root == nullptr;
+}
+
 void DepartmentTree::searchDepartment(const string& name) const 
 {
     string cleanName = trim(name);
