@@ -1,0 +1,4 @@
+# Test buildings for the hash collision case (HASH-7)
+Library
+Science Building
+Gym

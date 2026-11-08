@@ -12,10 +12,12 @@ Method: every case below was executed against the real sample data in the
 project directory. The actual output column is copied from the terminal.
 The repeating menu banner is removed from the output shown here so the
 input and result stay readable; it is printed before every prompt in a real
-session. Temporary data sets used by TC-22, TC-23, TC-24 and TC-25 were
-created outside the deliverable set, used, and then deleted.
+session. Temporary data sets used by T-22, T-23, T-24 and T-25 were created
+outside the deliverable set, used, and then deleted. The hash collision
+data set used by T-26 is kept in testdata/collision so the run can be
+repeated.
 
-SUMMARY: 25 executed, 25 passed, 0 failed.
+SUMMARY: 26 executed, 26 passed, 0 failed.
 Options 5 to 11 could not be tested because the graph and tree modules are
 not implemented; they are excluded from the pass/fail count.
 
@@ -299,6 +301,33 @@ Actual  : buildings.txt: 2 accepted, 0 rejected
           F001 | Reading Room | Library | Library
           Total facilities: 1
 Result  : PASS
+
+
+================================================================
+T-26  HASH COLLISION DEMO WITH OWN TEST DATA (HASH-7)
+================================================================
+Setup   : testdata/collision/buildings.txt holds Library, Science Building
+          and Gym. testdata/collision/facilities.txt holds F004, F106,
+          F009, F100, F010 and a lowercase duplicate f004.
+Command : ./campus.exe testdata/collision       (input: 1, 2, F100, 0)
+Expected: 5 accepted, 1 rejected, capacity 11, entries 5, collisions 2.
+          Under h = (h * 31 + c) % 11 the buckets are F004 to 6, F106 to 1,
+          F009 to 0, F100 to 6 and F010 to 0, so F100 collides with F004
+          and F010 collides with F009. The rejected duplicate adds nothing.
+Actual  : buildings.txt: 3 accepted, 0 rejected
+          Warning: facilities.txt line 12: duplicate facility ID F004 (keeping the first record)
+          facilities.txt: 5 accepted, 1 rejected (hash capacity 11, entries 5, collisions 2)
+          F004 | Computer Lab A | Science Building | Computer Lab
+          F106 | Collision Lab | Library | Computer Lab
+          F009 | Room 205 | Science Building | Classroom
+          F100 | Archived Room | Library | Classroom
+          F010 | Research Help Desk | Library | Library
+          Total facilities: 5
+          Found: Archived Room | Library | Classroom
+Result  : PASS
+Notes   : the duplicate attempt did not raise the count from 2, which is
+          the HASH-4 and HASH-7 requirement. The lookup of F100 succeeded
+          without scanning the facility list.
 
 
 ================================================================

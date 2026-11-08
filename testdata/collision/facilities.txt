@@ -1,0 +1,12 @@
+# Collision test data for capacity 11 with h = (h * 31 + c) % 11:
+#   F004 and F100 land in bucket 6.
+#   F009 and F010 land in bucket 0.
+#   Five accepted insertions therefore produce 2 collisions.
+# The last line is a lowercase duplicate of F004: it must be rejected
+# and must not add to the collision count.
+F004|Computer Lab A|Science Building|Computer Lab
+F106|Collision Lab|Library|Computer Lab
+F009|Room 205|Science Building|Classroom
+F100|Archived Room|Library|Classroom
+F010|Research Help Desk|Library|Library
+f004|Duplicate Attempt|Gym|Recreation
