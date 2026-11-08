@@ -1,0 +1,267 @@
+
+
+Course:      CSCE 2110 - Project 2
+Prepared by: Bobby Oliver 
+Updated:     November 8, 2026
+
+
+
+1. PURPOSE AND SCOPE
+
+
+The program loads campus data from instructor-supplied text files and lets a
+user inspect and search facility records from a menu. This document covers the
+implemented facility module: file loading with validation, listing, and the
+three facility searches (by ID, by name, by category).
+
+The campus graph (buildings, connections, BFS) and the department tree are not
+implemented yet. Their menu numbers are reserved and print a placeholder
+message, so the numbering will not change when those modules are added.
+
+The project is a single flat directory containing all source files, the four
+data files, and the documentation.
+
+
+2. SYSTEM OVERVIEW
+
+
+Program flow:
+
+   
+     read optional data directory from argv[1] (default ".")
+      
+      loadBuildingNames()      reads buildings.txt into vector<string>
+     
+      FacilityDatabase          reads facilities.txt, validating each
+          .loadFromFile()         record against the building list and
+                                 inserting accepted IDs into the hash table
+      
+       menu loop                 prints the menu, reads one line of input,
+                                    dispatches to a facility operation, and
+                                    repeats until the user enters 0
+
+
+
+    File                    Responsibility
+    
+    main.cpp                Entry point, building loader, menu, dispatch
+    Facility.h              Facility record struct
+    FacilityDatabase.h/.cpp Facility storage, file loading, display, search
+    HashTable.h/.cpp        Custom ID hash table (separate chaining)
+    Utils.h/.cpp            Trimming, case conversion, splitting, ID check,
+                            path joining, blank/comment detection
+
+
+
+3. DATA STRUCTURES
+
+ Facility (Facility.h)
+
+    struct Facility {
+        string id;         stored uppercase, e.g. F004
+        string name;       may repeat between records
+        string building;   spelling taken from buildings.txt
+        string category;
+    };
+
+A default constructor is provided so a Facility can be used as an empty
+result variable and stored in vectors.
+
+FacilityDatabase (FacilityDatabase.h/.cpp)
+
+    vector<Facility> facilities;   accepted records in file order
+    HashTable table;               same records keyed by ID
+
+The vector exists because the specification requires facilities to be
+displayed in file order, which a hash table cannot guarantee. The hash table
+exists because ID lookup must not scan the whole collection.
+
+ HashTable (HashTable.h/.cpp)
+
+    vector< vector<Facility> > buckets;   one chain per bucket
+    int capacity;                          number of buckets (default 11)
+    int entries;                           accepted records stored
+    int collisions;                        accepted inserts into non-empty buckets
+
+Separate chaining was chosen over open addressing because a chain can grow
+without resizing, so the table never needs rehashing and there is no fixed
+maximum number of facilities.
+
+ Building list (main.cpp)
+
+    vector<string> buildingNames;
+
+Holds accepted building names in file order, using the spelling from
+buildings.txt. Facilities are validated against this list, and the stored
+spelling is copied into each accepted facility so case differences in
+facilities.txt never leak into output.
+
+No std::map, std::unordered_map, std::unordered_set or std::hash is used
+anywhere in the project.
+
+
+
+4. HASH TABLE DESIGN
+
+
+ Hash function
+
+    index = 0
+    for each character c of uppercase(key):
+        index = (index * 31 + c) % capacity
+
+The key is uppercased first, so F004 and f004 always map to the same bucket.
+Reducing modulo capacity at every step keeps the running value small enough
+that it cannot overflow even for long keys. The multiplier 31 is the standard
+small-prime choice for string hashing and spreads similar keys such as F001
+and F002 across different buckets.
+
+ Collision handling and counting
+
+A collision is counted when an ACCEPTED insertion lands in a bucket that
+already holds at least one entry. A rejected duplicate ID does not change the
+count, and duplicate detection happens before the count is taken. This keeps
+the diagnostic consistent with the number of records actually stored.
+
+With the supplied data the table reports capacity 11, entries 10, collisions
+1: F009 and F010 both hash to bucket 0, which demonstrates a real collision
+while proving the chaining works.
+
+ Operations
+
+insert(facility)
+    compute bucket from uppercase ID
+    scan that bucket for an equal ID, return false if found
+    increment collisions if the bucket is non-empty
+    store a copy with an uppercase ID, increment entries, return true
+
+find(id, result)
+    compute bucket from uppercase ID
+    scan only that bucket, return the matching record
+    a lookup never scans other buckets or the vector
+
+ Diagnostic output
+
+diagnostic() returns:
+    "hash capacity 11, entries 10, collisions 1"
+This text is appended to the facilities load summary line.
+
+
+
+5. FILE LOADING AND VALIDATION
+
+
+ Order
+
+    1. buildings.txt
+    2. connections.txt   (not read yet - graph module pending)
+    3. facilities.txt
+    4. departments.txt   (not read yet - tree module pending)
+
+Buildings must be loaded before facilities because facility records are
+validated against the accepted building names.
+
+Line handling shared by all loaders
+
+    A UTF-8 byte order mark on the first line is stripped.
+     Blank lines are skipped.
+     A line whose first non-whitespace character is # is a comment and is
+      skipped. A # anywhere else is ordinary text, so "Room #5" is valid.
+    Leading and trailing whitespace, including the carriage return left by
+      Windows CRLF files, is trimmed from every field.
+    Skipped lines are not counted as accepted or rejected.
+
+buildings.txt rules
+
+One building name per line. A name is rejected when:
+     it is empty after trimming, or
+    it contains '|' (it could never be referenced by another file), or
+    the same name, ignoring case, was already accepted.
+
+The first spelling encountered is kept and later duplicates are rejected.
+
+ facilities.txt rules
+
+One record per line:  FacilityID | FacilityName | BuildingName | Category
+
+Checks run in this order, and the first failure decides the warning:
+    exactly four fields
+    no field empty after trimming
+     ID matches F followed by exactly three digits, after trimming and
+       uppercasing
+     building exists in buildings.txt, ignoring case
+    ID not already used by an accepted record
+
+On success the record is added to the vector and to the hash table. On
+failure a warning is printed with the file name, line number and reason, and
+the line is counted as rejected. A duplicate ID keeps the first record and
+never overwrites it.
+
+ Summary lines
+
+One line per file, for example:
+    buildings.txt: 7 accepted, 0 rejected
+    facilities.txt: 10 accepted, 0 rejected (hash capacity 11, entries 10, collisions 1)
+Counts are computed from the data, never hard-coded.
+
+ Missing or empty files
+
+A file that cannot be opened prints an error naming the file, is treated as
+empty, and the program continues with an empty summary. A file that opens but
+contains no records behaves the same way without an error message.
+
+
+
+6. SEARCH BEHAVIOUR
+
+
+ By ID (menu option 2)
+
+The input is trimmed and uppercased, then validated. Three outcomes:
+    invalid format  "Invalid format: an ID is F followed by exactly three digits."
+    not present     "Not found: no facility with ID F999"
+    found            "Found: <name> | <building> | <category>"
+The lookup goes through the hash table, never through a full scan.
+
+ By name (menu option 3)
+
+The input is trimmed, then compared to each facility name ignoring case. Names
+are not unique, so every match is printed in file order, followed by a count:
+    "2 facilities found with name: Room 101"
+A single match reads "1 facility found with name: ...". A miss prints
+"No facilities found with name: ...". A blank value prints
+"Invalid input: please enter a facility name."
+
+ By category (menu option 4)
+
+Identical to the name search, applied to the category field, with wording
+"category" instead of "name".
+
+Name and category searches are linear scans. They are not keyed by a unique
+value, so a hash table would add complexity without improving correctness.
+
+
+
+
+
+
+
+8. COMPLEXITY
+
+
+    Operation                 Cost
+    ------------------------  ------------------------------------------
+    Load n facilities         O(n) expected, plus O(n^2) duplicate
+                              checking in the building list
+    Search by ID              O(1) expected, O(k) worst case where k is
+                              the length of one chain
+    Search by name/category   O(n)
+    Display all               O(n)
+    Hash insert               O(1) expected
+
+
+
+
+
+
+
