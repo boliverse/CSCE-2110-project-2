@@ -127,6 +127,10 @@ int main(int argc, char* argv[]) {
     FacilityDatabase facilityDb;
     facilityDb.loadFromFile(dataDir, "facilities.txt", buildingNames);
 
+    CampusGraph campusGraph;
+    campusGraph.loadBuildings(joinPath(dataDir, "buildings.txt"));
+    campusGraph.loadConnections(joinPath(dataDir, "connections.txt"));
+
     DepartmentTree departmentTree;
     departmentTree.loadFromFile(dataDir, "departments.txt");
 
@@ -152,8 +156,15 @@ int main(int argc, char* argv[]) {
             string typed;
             getline(cin, typed);
             facilityDb.searchByCategory(typed);
-        } else if (choice >= 5 && choice <= 7) {
-            cout << "That option is not built yet." << endl;
+        } else if (choice == 5) {
+            campusGraph.displayGraph();
+        } else if (choice == 6) {
+            campusGraph.displayCountsAndDegrees();
+        } else if (choice == 7) {
+            string startName;
+            cout << "Enter starting building name: ";
+            getline(cin, startName);
+            campusGraph.findReachable(startName);
         } else if (choice == 8) {
             string name;
             string parentName;
