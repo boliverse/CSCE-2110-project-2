@@ -15,7 +15,7 @@
 #include "FacilityDatabase.h"
 #include "DepartmentTree.h"
 #include "Utils.h"
-
+#include "CampusGraph.h"
 using namespace std;
 
 // Stand-in loader: reads buildings.txt into a list of names so facilities
