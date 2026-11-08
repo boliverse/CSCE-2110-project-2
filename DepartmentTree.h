@@ -31,6 +31,7 @@ public:
     DepartmentTree& operator=(const DepartmentTree&) = delete;
     void loadFromFile(const std::string& dataDir, const std::string& fileName);
     bool addDepartment(const std::string& name, const std::string& parentName);
+    bool isEmpty() const;
     void searchDepartment(const std::string& name) const;
     void displayHierarchy() const;
     void preorderTraversal() const;
