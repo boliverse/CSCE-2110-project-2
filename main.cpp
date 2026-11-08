@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 #include "FacilityDatabase.h"
+#include "DepartmentTree.h"
 #include "Utils.h"
 
 using namespace std;
@@ -126,6 +127,9 @@ int main(int argc, char* argv[]) {
     FacilityDatabase facilityDb;
     facilityDb.loadFromFile(dataDir, "facilities.txt", buildingNames);
 
+    DepartmentTree departmentTree;
+    departmentTree.loadFromFile(dataDir, "departments.txt");
+
     int choice = -1;
     while (choice != 0) {
         printMenu();
@@ -148,8 +152,32 @@ int main(int argc, char* argv[]) {
             string typed;
             getline(cin, typed);
             facilityDb.searchByCategory(typed);
-        } else if (choice >= 5 && choice <= 11) {
+        } else if (choice >= 5 && choice <= 7) {
             cout << "That option is not built yet." << endl;
+        } else if (choice == 8) {
+            string name;
+            string parentName;
+            cout << "Enter department name: ";
+            getline(cin, name);
+            if(departmentTree.isEmpty()) 
+            {
+                departmentTree.addDepartment(name, "");
+            } 
+            else 
+            {
+                cout << "Enter parent department name: ";
+                getline(cin, parentName);
+                departmentTree.addDepartment(name, parentName);
+            }
+        } else if (choice == 9) {
+            string name;
+            cout << "Enter department name to search: ";
+            getline(cin, name);
+            departmentTree.searchDepartment(name);
+        } else if (choice == 10) {
+            departmentTree.displayHierarchy();
+        } else if (choice == 11) {
+            departmentTree.preorderTraversal();
         } else if (choice == 0) {
             cout << "Goodbye." << endl;
         } else {
