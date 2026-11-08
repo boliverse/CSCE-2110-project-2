@@ -1,24 +1,6 @@
 # CSCE-2110-project-2
 
-CSCE 2110 Project 2
-Smart Campus Navigation and Facility Analytics System
 
-Author: Bobby Oliver
-Updated: November 8, 2026
-
-
-Purpose
-
-This program loads campus data from plain text files and gives the user a menu
-for working with it. At the moment it reads buildings.txt and facilities.txt,
-then lets the user list every facility, look one up by ID, or search by
-facility name or category. Facilities are kept in a vector for listing and in
-a hand-written hash table for ID lookup.
-
-The campus graph and the department tree are not written yet. Options 5
-through 11 are reserved for that work and print a placeholder message, so the
-menu numbering will not change when those modules are added. connections.txt
-and departments.txt are therefore not read yet either.
 
 
 Build
