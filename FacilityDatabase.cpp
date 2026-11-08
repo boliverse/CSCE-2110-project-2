@@ -134,6 +134,60 @@ void FacilityDatabase::searchById(const string& typedId) const {
     }
 }
 
+// Searches by name. Names are not unique, so every matching record is
+// printed in file order. Matching ignores capitalization.
+void FacilityDatabase::searchByName(const std::string& typedName) const {
+    string name = trim(typedName);
+
+    if (name.empty()) {
+        cout << "Invalid input: please enter a facility name." << endl;
+        return;
+    }
+
+    int matches = 0;
+    for (size_t i = 0; i < facilities.size(); i++) {
+        if (equalsIgnoreCase(facilities[i].name, name)) {
+            cout << facilities[i].toString() << endl;
+            matches++;
+        }
+    }
+
+    if (matches == 0) {
+        cout << "No facilities found with name: " << name << endl;
+    } else if (matches == 1) {
+        cout << "1 facility found with name: " << name << endl;
+    } else {
+        cout << matches << " facilities found with name: " << name << endl;
+    }
+}
+
+// Searches by category. Every facility in that category is printed in file
+// order. Matching ignores capitalization and surrounding whitespace.
+void FacilityDatabase::searchByCategory(const std::string& typedCategory) const {
+    string category = trim(typedCategory);
+
+    if (category.empty()) {
+        cout << "Invalid input: please enter a facility category." << endl;
+        return;
+    }
+
+    int matches = 0;
+    for (size_t i = 0; i < facilities.size(); i++) {
+        if (equalsIgnoreCase(facilities[i].category, category)) {
+            cout << facilities[i].toString() << endl;
+            matches++;
+        }
+    }
+
+    if (matches == 0) {
+        cout << "No facilities found in category: " << category << endl;
+    } else if (matches == 1) {
+        cout << "1 facility found in category: " << category << endl;
+    } else {
+        cout << matches << " facilities found in category: " << category << endl;
+    }
+}
+
 int FacilityDatabase::getCount() const {
     return (int)facilities.size();
 }

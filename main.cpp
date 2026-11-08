@@ -3,11 +3,10 @@
 //          repeating Milestone 1 menu.
 // Author: Bobby Oliver
 //
-// NOTE: Right now only the facility options (1 and 2) are built. The other
-// menu numbers are kept so the numbering matches Section 6.9, and they
-// print a "not built yet" message until the graph and tree modules are
-// merged in. loadBuildingNames() is a stand-in until the CampusGraph
-// module loads buildings.txt itself.
+// NOTE: Right now the facility options (1 to 4) are built. The graph and
+// tree options (5 to 11) print a "not built yet" message until those
+// modules are merged in. loadBuildingNames() is a stand-in until the
+// CampusGraph module loads buildings.txt itself.
 
 #include <iostream>
 #include <fstream>
@@ -77,13 +76,15 @@ void printMenu() {
     cout << "===== Smart Campus Menu =====" << endl;
     cout << "1. View all facilities" << endl;
     cout << "2. Search facility by ID" << endl;
-    cout << "3. View campus graph" << endl;
-    cout << "4. Display graph counts and degrees" << endl;
-    cout << "5. Find reachable buildings (BFS)" << endl;
-    cout << "6. Add department" << endl;
-    cout << "7. Search department" << endl;
-    cout << "8. Display department hierarchy" << endl;
-    cout << "9. Run preorder traversal" << endl;
+    cout << "3. Search facilities by name" << endl;
+    cout << "4. Search facilities by category" << endl;
+    cout << "5. View campus graph" << endl;
+    cout << "6. Display graph counts and degrees" << endl;
+    cout << "7. Find reachable buildings (BFS)" << endl;
+    cout << "8. Add department" << endl;
+    cout << "9. Search department" << endl;
+    cout << "10. Display department hierarchy" << endl;
+    cout << "11. Run preorder traversal" << endl;
     cout << "0. Exit" << endl;
     cout << "Enter choice: ";
 }
@@ -111,8 +112,9 @@ int readMenuChoice() {
 }
 
 int main(int argc, char* argv[]) {
-    // optional command-line argument = data directory (default is data/)
-    string dataDir = "data";
+    // optional command-line argument = data directory (default is the
+    // current directory, where all the project files live)
+    string dataDir = ".";
     if (argc > 1) {
         dataDir = argv[1];
     }
@@ -136,7 +138,17 @@ int main(int argc, char* argv[]) {
             string typed;
             getline(cin, typed);
             facilityDb.searchById(typed);
-        } else if (choice >= 3 && choice <= 9) {
+        } else if (choice == 3) {
+            cout << "Enter facility name: ";
+            string typed;
+            getline(cin, typed);
+            facilityDb.searchByName(typed);
+        } else if (choice == 4) {
+            cout << "Enter facility category: ";
+            string typed;
+            getline(cin, typed);
+            facilityDb.searchByCategory(typed);
+        } else if (choice >= 5 && choice <= 11) {
             cout << "That option is not built yet." << endl;
         } else if (choice == 0) {
             cout << "Goodbye." << endl;

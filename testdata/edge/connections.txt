@@ -1,2 +1,0 @@
-# BuildingA|BuildingB
-Library|Gym

@@ -33,6 +33,15 @@ public:
     // invalid format, valid but not found, or found.
     void searchById(const std::string& typedId) const;
 
+    // Trims the typed name and prints every facility whose name matches
+    // (ignoring case) in file order, plus how many matched. Names are not
+    // unique, so more than one record can be printed.
+    void searchByName(const std::string& typedName) const;
+
+    // Trims the typed category and prints every facility in that category
+    // (ignoring case) in file order, plus how many matched.
+    void searchByCategory(const std::string& typedCategory) const;
+
     int getCount() const;
 };
 

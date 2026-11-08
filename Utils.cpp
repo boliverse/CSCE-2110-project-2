@@ -84,7 +84,7 @@ bool isValidFacilityId(const std::string& id) {
     return true;
 }
 
-// Builds a path like data/facilities.txt from a folder and a file name.
+// Builds a path like ./facilities.txt from a folder and a file name.
 std::string joinPath(const std::string& dir, const std::string& file) {
     if (dir.empty()) {
         return file;
