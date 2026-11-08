@@ -116,6 +116,10 @@ void DepartmentTree::loadFromFile(const string& dataDir, const string& fileName)
                 {
                     reason = "empty department name or parent name";
                 } 
+                else if(equalsIgnoreCase(name, "NONE")) 
+                {
+                    reason = "department name cannot be NONE";
+                }
                 else if(name.find('|') != string::npos) 
                 {
                     reason = "department name must not contain '|'";
