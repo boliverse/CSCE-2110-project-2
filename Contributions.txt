@@ -1,6 +1,6 @@
 Bobby - facility records, custom hash table, ID search, name and category
 search.
 
-shwet - campus graph, BFS reachability, shortest path, connectivity report.
+shwet - I developed the Campus Graph module using an adjacency-list data structure to represent campus buildings and their connections. I implemented graph display, BFS traversal, shortest-path search, building degree calculations, and connectivity reports. I also created `CampusGraph.h` and `CampusGraph.cpp` and tested the functionality using the provided campus data.
 
 Bryce - Worked on department tree to implement its functionalities and the functionalities for department search, hierarchy display and preorder traversal, and top of adding it to main.cpp 
