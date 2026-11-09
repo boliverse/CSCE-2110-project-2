@@ -3,5 +3,4 @@ search.
 
 shwet - campus graph, BFS reachability, shortest path, connectivity report.
 
-Bryce - department tree, department search, hierarchy display, preorder
-traversal.
+Bryce - Worked on department tree to implement its functionalities and the functionalities for department search, hierarchy display and preorder traversal, and top of adding it to main.cpp 
