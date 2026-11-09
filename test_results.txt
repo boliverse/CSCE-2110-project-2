@@ -3,26 +3,24 @@ Test Results
 
 Course: CSCE 2110, Project 2
 Prepared by: Bobby Oliver
-Date: November 8, 2026
+Date: November 9, 2026
 
 I ran every test below myself on Windows, using g++ 14.2.0 through Git Bash
 and compiling to C++11. The build command was
 
-    g++ -std=c++11 -Wall -Wextra -o campus.exe Utils.cpp HashTable.cpp
-    FacilityDatabase.cpp main.cpp
+    g++ -std=c++11 -Wall -Wextra -o campus.exe Utils.cpp HashTable.cpp FacilityDatabase.cpp CampusGraph.cpp DepartmentTree.cpp main.cpp
 
 The "actual result" text is copied from the terminal rather than retyped. The
-menu repeats itself before every prompt, so I left the banner out of the
-transcripts to keep them readable; the program still prints it in a real
-session.
+menu repeats itself before every prompt, so I left the banner and the option
+lines out of the transcripts to keep them readable; the program still prints
+them in a real session.
 
-Twenty-six tests ran and all twenty-six passed. Options 5 through 11 are
-placeholders for the graph and tree work, so they are outside this count.
+Thirty-six tests ran and all thirty-six passed.
 
 
 Test 1. Clean build.
 
-I compiled the four source files with warnings turned on.
+I compiled all six source files with warnings turned on.
 Expected: no errors and no warnings.
 Actual: exit status 0 and nothing printed.
 Result: pass.
@@ -32,12 +30,18 @@ Test 2. Loading the sample data.
 
 Started the program with no argument, which reads from the current directory,
 then chose 0 to exit.
-Expected: seven buildings accepted and ten facilities accepted, with a hash
-capacity of 11, ten entries and one collision.
+Expected: seven buildings, ten facilities, six connections and seven
+departments accepted, with a hash capacity of 11, ten entries and one
+collision.
 Actual:
     buildings.txt: 7 accepted, 0 rejected
     facilities.txt: 10 accepted, 0 rejected (hash capacity 11, entries 10, collisions 1)
-Result: pass.
+    ./buildings.txt: 7 accepted, 0 rejected
+    ./connections.txt: 6 accepted, 0 rejected
+    departments.txt: 7 accepted, 0 rejected
+Result: pass. The first line and the third line both come from buildings.txt,
+because the facility database checks its building names against that file and
+the graph then loads the same file for its own building list.
 
 
 Test 3. Listing every facility.
@@ -77,10 +81,10 @@ Result: pass.
 
 Test 6. Looking up an ID with spaces around it.
 
-Input: option 2, then two spaces, f004, two more spaces.
-Expected: the whitespace is trimmed, the ID is uppercased, and the same
-record comes back.
-Actual: Found: Computer Lab A | Science Building | Computer Lab
+Input: option 2, then two spaces, f001, two more spaces.
+Expected: the whitespace is trimmed, the ID is uppercased, and the record
+comes back.
+Actual: Found: Main Reading Room | Library | Library
 Result: pass.
 
 
@@ -97,7 +101,9 @@ Test 8. Looking up an ID that is not there.
 Input: option 2, then F999.
 Expected: a not-found message naming the normalized ID.
 Actual: Not found: no facility with ID F999
-Result: pass.
+Result: pass. F100 is also absent from the sample data and is reported the
+same way; it exists only in the collision data set, where the same lookup
+succeeds.
 
 
 Test 9. Searching a name that several facilities share.
@@ -140,11 +146,12 @@ Actual: Invalid input: please enter a facility name.
 Result: pass.
 
 
-Test 13. Searching a name that does not exist.
+Test 13. Searching part of a name.
 
-Input: option 3, then Nope.
-Expected: a message saying nothing matched.
-Actual: No facilities found with name: Nope
+Input: option 3, then lab.
+Expected: no match, because a name search compares the whole field and only
+ignores capitalization.
+Actual: No facilities found with name: lab
 Result: pass.
 
 
@@ -198,21 +205,158 @@ Result: pass.
 
 Test 19. Typing a number that is out of range.
 
-Input: 12.
+Input: 99.
 Expected: an error and the menu again.
 Actual: Invalid choice. Please enter a number from the menu.
 Result: pass.
 
 
-Test 20. Choosing one of the reserved options.
+Test 20. Viewing the campus graph.
 
-Input: 5.
-Expected: the placeholder message and no crash.
-Actual: That option is not built yet.
+Input: option 5.
+Expected: every building with its neighbours, and a clear marker for the
+building that has none.
+Actual:
+    Campus Graph
+    Library: Student Union, Business Building
+    Student Union: Library, Science Building, Gym
+    Science Building: Student Union, Engineering Building
+    Engineering Building: Science Building
+    Business Building: Library, Gym
+    Gym: Student Union, Business Building
+    Observatory: (no connections)
+Result: pass. Each of the six connections appears in both directions and
+Observatory stays isolated.
+
+
+Test 21. Graph counts and degrees.
+
+Input: option 6.
+Expected: one degree per building, the building total, and the connection
+total counted once rather than twice.
+Actual:
+    Graph Counts and Degrees
+    Library: degree 2
+    Student Union: degree 3
+    Science Building: degree 2
+    Engineering Building: degree 1
+    Business Building: degree 2
+    Gym: degree 2
+    Observatory: degree 0
+    Total buildings: 7
+    Total connections: 6
+Result: pass. The six degrees add up to twelve, which is two per connection.
+
+
+Test 22. Reachability from a connected building.
+
+Input: option 7, then Library.
+Expected: every building reachable from Library with its distance, and the
+count out of the total.
+Actual:
+    Reachable buildings from Library:
+    Library (distance 0)
+    Student Union (distance 1)
+    Business Building (distance 1)
+    Science Building (distance 2)
+    Gym (distance 2)
+    Engineering Building (distance 3)
+    Reachable: 6 of 7 buildings
+Result: pass. Distances follow the fewest connections, and Observatory is the
+building that cannot be reached.
+
+
+Test 23. Reachability from an isolated building.
+
+Input: option 7, then Observatory.
+Expected: only Observatory itself, at distance 0.
+Actual:
+    Reachable buildings from Observatory:
+    Observatory (distance 0)
+    Reachable: 1 of 7 buildings
 Result: pass.
 
 
-Test 21. Reaching the end of input without choosing Exit.
+Test 24. Reachability from a building that does not exist.
+
+Input: option 7, then ZZZ.
+Expected: an error naming the typed value and no traversal.
+Actual: Error: unknown building 'ZZZ'.
+Result: pass.
+
+
+Test 25. Adding a department under a parent.
+
+Input: option 8, then Astronomy, then College of Science.
+Expected: the new department is accepted and becomes a child of the parent.
+Actual: Department added successfully: Astronomy
+Result: pass. The hierarchy listing in Test 29 shows it under College of
+Science.
+
+
+Test 26. Adding a department that already exists.
+
+Input: option 8, then Astronomy, then College of Science again.
+Expected: the duplicate is rejected and the tree keeps one copy.
+Actual: Department already exists: Astronomy
+Result: pass.
+
+
+Test 27. Searching a department ignoring capitalization.
+
+Input: option 9, then astronomy.
+Expected: the department, its parent, how many children it has and its depth.
+Actual:
+    Department: Astronomy
+    Parent: College of Science
+    Direct children: 0
+    Depth: 2
+Result: pass.
+
+
+Test 28. Searching a department that does not exist.
+
+Input: option 9, then Nope.
+Expected: a not-found message.
+Actual: Department not found: Nope
+Result: pass.
+
+
+Test 29. Displaying the department hierarchy.
+
+Input: option 10.
+Expected: the root first and each level indented one step further.
+Actual:
+    University
+        College of Engineering
+            Computer Science
+            Electrical Engineering
+        College of Science
+            Mathematics
+            Physics
+            Astronomy
+Result: pass. Astronomy sits under College of Science, where Test 25 put it.
+
+
+Test 30. Running the preorder traversal.
+
+Input: option 11.
+Expected: each department once, a parent before its children, in the order
+the children appear.
+Actual:
+    Preorder traversal:
+    University
+    College of Engineering
+    Computer Science
+    Electrical Engineering
+    College of Science
+    Mathematics
+    Physics
+    Astronomy
+Result: pass.
+
+
+Test 31. Reaching the end of input without choosing Exit.
 
 Input: option 1, then the input stream ends.
 Expected: the option finishes and the program exits instead of looping.
@@ -222,67 +366,88 @@ Actual:
 Result: pass.
 
 
-Test 22. Loading empty files.
+Test 32. Loading empty files.
 
 I made a temporary directory holding four empty files and pointed the program
 at it.
-Input: 1, 2, F001, 0.
-Expected: nothing accepted and nothing rejected in either file, empty-state
-messages, and no crash.
+Input: 1, 5, 8 with the name Physics, 10, 11, 0.
+Expected: nothing accepted and nothing rejected, empty-state messages instead
+of crashes, and a department added on an empty tree becoming the root.
 Actual:
     buildings.txt: 0 accepted, 0 rejected
     facilities.txt: 0 accepted, 0 rejected (hash capacity 11, entries 0, collisions 0)
+    tmpdocs/empty/buildings.txt: 0 accepted, 0 rejected
+    tmpdocs/empty/connections.txt: 0 accepted, 0 rejected
+    departments.txt: 0 accepted, 0 rejected
     No facilities are loaded.
-    Not found: no facility with ID F001
+    No buildings are available.
+    Root department added: Physics
+    Physics
+    Preorder traversal:
+    Physics
 Result: pass.
 
 
-Test 23. Pointing the program at a directory that does not exist.
+Test 33. Pointing the program at a directory that does not exist.
 
-Input: option 1 against a missing directory.
-Expected: an error naming each file, both files treated as empty, and the
+Input: option 1 against a missing directory, then option 5.
+Expected: an error naming each file, every file treated as empty, and the
 program carrying on.
 Actual:
     Error: could not open buildings.txt - treating it as empty.
     buildings.txt: 0 accepted, 0 rejected
     Error: could not open facilities.txt - treating it as empty.
     facilities.txt: 0 accepted, 0 rejected (hash capacity 11, entries 0, collisions 0)
+    Error: could not open nosuchdir/buildings.txt. Treating it as empty.
+    nosuchdir/buildings.txt: 0 accepted, 0 rejected
+    Error: could not open nosuchdir/connections.txt. Treating it as empty.
+    nosuchdir/connections.txt: 0 accepted, 0 rejected
+    Error: could not open departments.txt - treating it as empty.
+    departments.txt: 0 accepted, 0 rejected
     No facilities are loaded.
-Result: pass.
+    No buildings are available.
+Result: pass. The department error names the file without the directory, which
+is a wording difference between modules and does not affect behaviour.
 
 
-Test 24. Bad records and Windows line endings.
+Test 34. Bad records and Windows line endings.
 
 I built temporary files saved with carriage returns and line feeds, mixing
-good and bad records. The building file held Library, a duplicate "library",
-a padded "  Science Building  " and Gym. The facility file held a lowercase
-f004, a padded F005, a duplicate F005, a record naming an unknown building,
-records with three and six fields, a record with an empty field, the invalid
-ID F01, a name containing #, and blank lines.
-Input: 1, 2, f004, 0.
+good and bad records. The building file held Library, a duplicate library, a
+padded Science Building and Gym. The facility file held a lowercase f004, a
+facility naming the building in different capitalization, a duplicate F005, a
+record naming an unknown building, records with three and six fields, a record
+with an empty field, the invalid ID F01, a name containing #, and blank lines.
+Input: 1, 2 with f004, 0.
 Expected: every bad line rejected with the file, line number and reason, the
 good lines accepted, IDs normalized, and the building spelling taken from
 buildings.txt.
 Actual:
-    Warning: buildings.txt line 4: duplicate building 'library'
+    Warning: buildings.txt line 2: duplicate building 'library'
     buildings.txt: 3 accepted, 1 rejected
-    Warning: facilities.txt line 4: duplicate facility ID F005 (keeping the first record)
-    Warning: facilities.txt line 5: unknown building 'Unknown Hall'
-    Warning: facilities.txt line 6: wrong number of fields (expected 4, found 3)
-    Warning: facilities.txt line 7: wrong number of fields (expected 4, found 6)
-    Warning: facilities.txt line 8: empty field
-    Warning: facilities.txt line 9: invalid facility ID 'F01' (must be F plus exactly three digits)
+    Warning: facilities.txt line 3: duplicate facility ID F005 (keeping the first record)
+    Warning: facilities.txt line 4: unknown building 'Unknown Hall'
+    Warning: facilities.txt line 5: wrong number of fields (expected 4, found 3)
+    Warning: facilities.txt line 6: wrong number of fields (expected 4, found 6)
+    Warning: facilities.txt line 7: empty field
+    Warning: facilities.txt line 8: invalid facility ID 'F01' (must be F plus exactly three digits)
     facilities.txt: 3 accepted, 6 rejected (hash capacity 11, entries 3, collisions 0)
+    Warning: tmpdocs/bad/buildings.txt line 2: duplicate building name 'library'.
+    tmpdocs/bad/buildings.txt: 3 accepted, 1 rejected
+    tmpdocs/bad/connections.txt: 0 accepted, 0 rejected
+    departments.txt: 0 accepted, 0 rejected
     F004 | Computer Lab A | Science Building | Computer Lab
     F005 | Room 101 | Gym | Classroom
     F010 | Room #5 | Gym | Recreation
     Total facilities: 3
     Found: Computer Lab A | Science Building | Computer Lab
 Result: pass. The rejected duplicate ID did not raise the collision count,
-which shows that only accepted insertions can create a collision.
+which shows that only accepted insertions can create a collision, and the
+building spelling Science Building came from the building file even though the
+facility line wrote science building.
 
 
-Test 25. Files that start with a UTF-8 byte order mark.
+Test 35. Files that start with a UTF-8 byte order mark.
 
 I saved temporary files beginning with the three mark bytes.
 Input: 1, 0.
@@ -290,12 +455,16 @@ Expected: the mark is ignored and the records are accepted.
 Actual:
     buildings.txt: 2 accepted, 0 rejected
     facilities.txt: 1 accepted, 0 rejected (hash capacity 11, entries 1, collisions 0)
+    tmpdocs/bom/buildings.txt: 2 accepted, 0 rejected
+    tmpdocs/bom/connections.txt: 0 accepted, 0 rejected
+    departments.txt: 0 accepted, 0 rejected
     F001 | Reading Room | Library | Library
     Total facilities: 1
-Result: pass.
+Result: pass. The graph loader also reads the building file it is given, so it
+reports the same two buildings.
 
 
-Test 26. A collision from my own test data, and a duplicate insert.
+Test 36. A collision from my own test data, and a duplicate insert.
 
 This is the case the collision requirement asks for. testdata/collision holds
 a building file with Library, Science Building and Gym, and a facility file
@@ -304,13 +473,19 @@ capacity of 11 and the hash h = (h * 31 + c) % 11, F004 and F100 both land in
 bucket 6 while F009 and F010 both land in bucket 0, so five accepted records
 produce two collisions.
 
-Input: ./campus.exe testdata/collision with 1, 2, F100, 0.
+Input: ./campus.exe testdata/collision with 1, 2 and F100, 0.
 Expected: five accepted, one rejected, capacity 11, five entries, two
-collisions, and the duplicate adding nothing.
+collisions, the duplicate adding nothing, and F100 found even though it is
+absent from the sample data.
 Actual:
     buildings.txt: 3 accepted, 0 rejected
     Warning: facilities.txt line 12: duplicate facility ID F004 (keeping the first record)
     facilities.txt: 5 accepted, 1 rejected (hash capacity 11, entries 5, collisions 2)
+    testdata/collision/buildings.txt: 3 accepted, 0 rejected
+    Error: could not open testdata/collision/connections.txt. Treating it as empty.
+    testdata/collision/connections.txt: 0 accepted, 0 rejected
+    Error: could not open departments.txt - treating it as empty.
+    departments.txt: 0 accepted, 0 rejected
     F004 | Computer Lab A | Science Building | Computer Lab
     F106 | Collision Lab | Library | Computer Lab
     F009 | Room 205 | Science Building | Classroom
@@ -319,6 +494,5 @@ Actual:
     Total facilities: 5
     Found: Archived Room | Library | Classroom
 Result: pass. The count stayed at two after the duplicate, and the lookup of
-F100 succeeded without scanning the facility list.
-
-
+F100 succeeded without scanning the facility list. The two missing files are
+expected, because this test directory only provides buildings and facilities.

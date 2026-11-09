@@ -3,19 +3,21 @@ Design Document
 
 Course: CSCE 2110, Project 2
 Author: Bobby Oliver
-Updated: November 8, 2026
+Updated: November 9, 2026
 
 
 1. Purpose and scope
 
 The program loads campus data from the instructor-supplied text files and lets
-a user inspect and search facility records from a menu. This document covers
-the facility module: loading with validation, listing, and the three searches
-by ID, by name and by category.
+a user inspect and search facility records, walk the campus map and read the
+department hierarchy from a menu. All four data files are read at startup:
+buildings.txt, connections.txt, facilities.txt and departments.txt.
 
-The campus graph and the department tree are not implemented yet. Their menu
-numbers are reserved and print a placeholder message, so the numbering will
-not shift when those modules are added.
+The facility work is my part of the project: loading with validation, listing,
+the four facility menu options, the custom hash table, and the searches by ID,
+by name and by category. The campus graph and the department tree were written
+by my teammates and are now merged into the same program, so options 5 through
+11 carry out real work rather than printing a placeholder.
 
 The source files, the four data files and this documentation sit together in
 one flat project directory. The only subdirectory is testdata/collision, which
@@ -25,19 +27,28 @@ holds the small data set used to demonstrate a hash collision.
 2. System overview
 
 The program reads an optional data directory from the command line and falls
-back to the current directory when none is given. It then reads buildings.txt
-into a vector of names, and the facility database reads facilities.txt,
-checking each record against that building list and inserting accepted IDs
-into the hash table. A menu loop then prints the options, reads one line of
-input, carries out the chosen operation and repeats until the user enters 0.
+back to the current directory when none is given. It then loads the files in a
+fixed order. The facility database reads buildings.txt into a list of names
+and reads facilities.txt, checking each record against that list and inserting
+accepted IDs into the hash table. The graph loads buildings.txt and
+connections.txt. The department tree loads departments.txt. A menu loop then
+prints the options, reads one line of input, carries out the chosen operation
+and repeats until the user enters 0.
 
-main.cpp is the entry point. It holds the building loader, the menu and the
-dispatch to each operation. Facility.h defines the record itself.
-FacilityDatabase.h and FacilityDatabase.cpp hold the accepted facilities, the
-file loading, the listing and the searches. HashTable.h and HashTable.cpp are
-the custom ID table. Utils.h and Utils.cpp hold the small helpers: trimming,
-case conversion, field splitting, the ID format check, path joining, and
-blank or comment detection.
+main.cpp is the entry point. It holds the building loader used by the facility
+check, the menu and the dispatch to each operation. Facility.h defines the
+facility record. FacilityDatabase.h and FacilityDatabase.cpp hold the accepted
+facilities, the file loading, the listing and the facility searches.
+HashTable.h and HashTable.cpp are the custom ID table. CampusGraph.h and
+CampusGraph.cpp hold the building list, the connections, the graph reports and
+the breadth-first search. DepartmentTree.h and DepartmentTree.cpp hold the
+department hierarchy and its operations. Utils.h and Utils.cpp hold the small
+helpers: trimming, case conversion, field splitting, the ID format check, path
+joining, and blank or comment detection.
+
+The menu numbers follow the project specification, with Exit as 0. The
+dispatch is a chain of comparisons on the chosen number, and any other number
+prints one error line and shows the menu again.
 
 
 3. Data structures
@@ -59,6 +70,22 @@ of facilities, along with the capacity, the number of entries and the number
 of collisions. Separate chaining was chosen over open addressing because a
 chain can keep growing, so the table never needs resizing and there is no
 fixed maximum number of facilities.
+
+CampusGraph stores one record per building: the name and a vector of neighbour
+numbers. A neighbour is the position of the other building in the same vector,
+so an edge is stored twice, once in each direction, and the graph is
+undirected. Six connection lines therefore give twelve stored neighbours.
+Building names are looked up by a case-insensitive scan of the vector, and the
+position returned is what the neighbour lists store. The class also keeps two
+reports that the menu does not call yet, a shortest path search and a
+connectivity report.
+
+DepartmentTree stores one node per department. Each node holds the name, a
+pointer to its parent and a vector of pointers to its children, which makes it
+a general tree rather than a binary tree because a parent can have any number
+of children. The tree object holds only the root pointer. The destructor walks
+the tree and deletes every node, and copying is disabled so two tree objects
+can never share the same nodes.
 
 main.cpp keeps the accepted building names in a vector of strings, in file
 order. Facilities are validated against that list, and the stored spelling is
@@ -105,9 +132,9 @@ collisions 1", which is appended to the facilities load summary line.
 
 The files are read in the required order: buildings.txt, connections.txt,
 facilities.txt, departments.txt. Buildings must come before facilities because
-facility records are checked against the accepted building names.
-connections.txt and departments.txt are listed for completeness but are not
-read yet, since the graph and tree modules are still pending.
+facility records are checked against the accepted building names, and before
+connections because a connection can only name buildings that already exist.
+Departments are independent of the other three.
 
 Every loader follows the same line rules. A UTF-8 byte order mark on the first
 line is stripped. Blank lines are skipped. A line whose first non-whitespace
@@ -122,6 +149,12 @@ after trimming, when it contains the field separator | so that no other file
 could reference it, or when the same name ignoring case was already accepted.
 The first spelling seen is kept and later duplicates are rejected.
 
+connections.txt holds two building names separated by |. A line is rejected
+when it does not have exactly two fields, when either field is empty, when
+either name is not in buildings.txt, when both fields name the same building,
+or when the same pair already exists in either order. An accepted line adds
+one neighbour to each building.
+
 facilities.txt holds one record per line, with the ID, name, building and
 category separated by |. The checks run in a fixed order and the first
 failure decides the warning: exactly four fields, no field empty after
@@ -132,16 +165,26 @@ the vector and the table. On failure a warning names the file, the line number
 and the reason, and the line counts as rejected. A duplicate ID keeps the
 first record and never overwrites it.
 
+departments.txt holds a department name and its parent name separated by |.
+The word NONE in the parent field marks the root, and exactly one line may use
+it. A line is rejected for the wrong number of fields, an empty name or
+parent, the reserved name NONE as a department, a | inside a name, a
+department that is its own parent, a name that already exists, a second root,
+or a parent that has not been loaded yet. Because parents must already exist,
+the file has to list a parent before its children.
+
 Each file ends with one summary line, for example "buildings.txt: 7 accepted,
 0 rejected" or "facilities.txt: 10 accepted, 0 rejected (hash capacity 11,
 entries 10, collisions 1)". Every number is computed from the data.
 
-A file that cannot be opened prints an error naming the file, is treated as
-empty, and the program continues. A file that opens but holds no records
-behaves the same way without the error message.
+A file that cannot be opened prints an error, is treated as empty, and the
+program continues. The facility and department loaders name the file bare,
+while the graph loader prints the path it tried, which is a wording difference
+between the modules and does not change behaviour. A file that opens but holds
+no records behaves like an empty file without the error message.
 
 
-6. Search behaviour
+6. Facility search behaviour
 
 An ID search, menu option 2, trims and uppercases the input before validating
 it, then reports one of three things. Invalid input prints "Invalid format: an
@@ -151,11 +194,12 @@ category on one line. The lookup goes through the hash table and never
 through a scan of the facility vector.
 
 A name search, menu option 3, trims the input and compares it to each facility
-name ignoring case. Names are not unique, so every match is printed in file
-order followed by the count, as in "2 facilities found with name: Room 101".
-A single match uses the singular wording. A miss prints "No facilities found
-with name: ..." and a blank value prints "Invalid input: please enter a
-facility name."
+name ignoring case. The whole field has to match, so "Room 101" finds both
+records while "room" finds none. Names are not unique, so every match is
+printed in file order followed by the count, as in "2 facilities found with
+name: Room 101". A single match uses the singular wording. A miss prints "No
+facilities found with name: ..." and a blank value prints "Invalid input:
+please enter a facility name."
 
 A category search, menu option 4, behaves the same way against the category
 field, with the word category in place of name.
@@ -164,7 +208,54 @@ The name and category searches are linear scans. Neither field is unique, so a
 hash table would add complexity without improving correctness.
 
 
-7. Complexity
+7. Campus graph behaviour
+
+Option 5 prints every building in load order with its neighbours, or the text
+"(no connections)" when it has none. Each connection appears twice, in the
+line for each of the two buildings, which shows the undirected storage
+directly.
+
+Option 6 prints the degree of every building, then the number of buildings and
+the number of connections. A degree is the size of that building's neighbour
+list. The connection total is the sum of the degrees divided by two, because
+every connection was counted once at each end.
+
+Option 7 asks for a starting building, finds it ignoring case, and runs a
+breadth-first search with a queue. A visited vector stops a building from
+being queued twice, and a distance vector records the number of connections
+from the start. Buildings are printed in the order the queue reaches them, so
+distances never decrease down the list. The output ends with how many
+buildings were reached out of the total, which makes an unreachable building
+visible: from Library the count is six of seven, and Observatory is the one
+left out. Starting from Observatory reaches only itself. An unknown name
+prints "Error: unknown building '...'." and no traversal.
+
+The class also contains a shortest path search and a connectivity report that
+compute a path list and a component count, but no menu option calls them yet.
+
+
+8. Department tree behaviour
+
+Option 8 adds a department. When the tree is empty the typed name becomes the
+root and the program says so, without asking for a parent. Otherwise it asks
+for the parent name and refuses the add when the name is empty, contains |,
+already exists, or the parent is not found. A duplicate prints "Department
+already exists: ..." and leaves the tree unchanged.
+
+Option 9 asks for a department name, trims it, and searches ignoring case. It
+prints the stored spelling, the parent name or "Parent: None" for the root,
+the number of direct children, and the depth, where the root has depth 0. An
+unknown name prints "Department not found: ..." and a blank name prints an
+invalid input message.
+
+Option 10 prints the hierarchy from the root down, indenting each level by
+four spaces. Option 11 prints a preorder traversal, which lists the root
+first, then each subtree in the order the children were added, so a parent
+always appears before its children. Both print "No departments are loaded."
+when the tree is empty.
+
+
+9. Complexity
 
 Loading n facilities is linear in the number of records, with an extra
 quadratic cost from checking each facility building against the building list.
@@ -174,3 +265,15 @@ insertion is constant time on average.
 
 With eleven buckets and ten records the longest chain is two, so lookups in
 the supplied data cost at most two comparisons.
+
+Loading the graph costs one scan of the building list per connection line, so
+it is linear in the connections times the buildings. Breadth-first search is
+linear in the buildings plus the stored neighbours, because each building is
+queued once and each neighbour list is read once. The counts and degrees
+report is linear in the buildings plus the neighbours.
+
+Loading d departments costs a scan of the tree for every line, because the
+parent and the duplicate check both search by name, so it is quadratic in the
+number of departments. Adding a department, searching for one, printing the
+hierarchy and running the preorder traversal all scan at most the whole tree
+once, so they are linear in the departments.
